@@ -1,0 +1,115 @@
+show_hints() {
+#--called as show_hints "$x" "$y" "$icon_width" "$icon_count"
+
+[[ "$1" ]] && arg1="$1" || arg1='1390'
+[[ "$2" ]] && arg2="$2" || arg2='0'
+[[ "$3" ]] && arg3="$3" || arg3='28'
+[[ "$4" ]] && arg4="$4" || arg4='8'
+
+#--For now, allow failure to declare parameters for testing purposes
+
+awesome-client '
+local awful = require("awful")
+local beautiful = require("beautiful")
+local gears = require("gears")
+local s
+
+local sys_hints_geo_x = '"$arg1"' 
+local sys_hints_geo_y = '"$arg2"' 
+local sys_hints_icon_width = '"$arg3"' 
+local sys_hints_icon_count = '"$arg4"' 
+
+local systray_hints_font = beautiful.systray_hints_font or beautiful.font
+local systray_hints_bg = beautiful.systray_hints_bg or "#ff00ff"
+local systray_hints_fg = beautiful.systray_hints_fg or "#000000"
+
+sys_hints_icon_width = sys_hints_icon_width - 2 --Subtract 2px from icon width for left/right margins
+
+if sys_hints_geo_y >= 100 then sys_hints_geo_y = sys_hints_geo_y - sys_hints_icon_width
+    else sys_hints_geo_y = sys_hints_geo_y + sys_hints_icon_width --Put hints above/below systray
+end
+
+awful.screen.connect_for_each_screen(function(screen)
+    if screen.systray.visible == true then s = screen end
+end)
+if s == nil then return nil end
+
+function hide_systray_hints()
+    if systray_hints_widget then systray_hints_widget.visible = false end
+end
+
+function sys_hints_kill_rofi(c)
+    if c.instance == "rofi" and systray_hints_widget and systray_hints_widget.visible then 
+        c:kill()
+        client.disconnect_signal("unfocus", sys_hints_kill_rofi)
+    end
+end
+
+function sys_hints_hide_systray()
+        local s
+        awful.screen.connect_for_each_screen(
+            function(screen) if screen.systray then s = screen end 
+        end)
+        s.systray.visible = false 
+end
+
+hide_systray_hints()
+client.connect_signal("unfocus", sys_hints_kill_rofi)
+
+local num_rows = sys_hints_icon_count
+local sys_hints_list = {}
+local systray_widget_list = {}
+
+local widget_shape = function(cr, width, height)
+    gears.shape.rounded_rect(cr, width, height, 5)
+end
+
+local var = {}
+for i = 1, num_rows do table.insert(sys_hints_list, tostring(i)) end 
+for k, v in pairs(sys_hints_list) do
+    var["ryan_text_" .. v] = wibox.widget.textbox(tostring(v))
+    local text_alias = var["ryan_text_" .. v]
+    text_alias.font = systray_hints_font -- "Sans 14"
+    text_alias.markup = "<span color='"'"'" .. systray_hints_fg .. "'"'"'>" .. v .. "</span>"
+
+    local item_container_place = {}
+    table.insert(item_container_place, text_alias)
+    item_container_place.widget = wibox.container.place
+
+    local item_container_background = {}
+    table.insert(item_container_background, item_container_place)
+    item_container_background.widget = wibox.container.background
+    item_container_background.bg = systray_hints_bg -- "#ff00ff"
+    item_container_background.forced_width = sys_hints_icon_width
+    item_container_background.shape  = widget_shape
+    --item_container_background.shape_border_width = 1
+    --item_container_background.shape_border_color = systray_hints_fg
+    item_container_background.id = "systray_hint_background_item_" .. tostring(v)
+
+    local item_container_margin = {}
+    table.insert(item_container_margin, item_container_background)
+    item_container_margin.widget = wibox.container.margin
+    item_container_margin.right  = 1
+    item_container_margin.left  = 1
+
+    local complete_widget = item_container_margin
+    table.insert(systray_widget_list, complete_widget)
+end 
+systray_widget_list.layout = wibox.layout.fixed.horizontal
+
+systray_hints_widget = awful.popup {
+    widget = {
+    screen = s,
+    systray_widget_list,
+
+    layout = wibox.layout.fixed.horizontal,
+    },
+    x            = sys_hints_geo_x,
+    y            = sys_hints_geo_y,
+    visible      = true,
+    ontop        = true,
+    bg           = "#00000000",
+    --hide_on_right_click = true
+}
+'
+}
