@@ -3,10 +3,11 @@
 
 # See "README" ! Tested with awesome v4.3
 
-script_path="$(dirname $(realpath "$BASH_SOURCE"))"
+script_path="$(dirname "$(realpath "$BASH_SOURCE")")"
 rofi_theme="${script_path}/invisible.rasi" #key grabber only
 exit_key='s' # See "README" !
 hover_time='3' #time to hover in seconds if Ctrl+O
+hide=true #for hidden systray environment, rehide when escaping/canceling
 
 deps=( awesome-client iocane rofi xdotool ) 
 for i in "${deps[@]}"; do command -v "$i" >/dev/null || 
@@ -19,7 +20,7 @@ parse_string() { printf '%s\n' "$1" | awk '{$1=""}1' | sed 's|[ "]||g' ; }
 
 awesome-exec() {
     local file
-    [[ "$(realpath "$1")" == "$1" ]] && file="$1" || file="${script_path}/${1}"
+    file="${script_path}/${1}"
 	[ -f "$file" ] && awesome-client 'dofile("'"$file"'")' ||
     { echo "Could not find ${1}."; exit 1; }
 }
@@ -45,7 +46,7 @@ mouse_to_icon() {
 
 get_choice() {
     choice=$(seq_with_exit_key "$icon_count" | rofi \
-    -kb-custom-1 "Ctrl+l" -kb-custom-2 "Ctrl+o" -dmenu -theme "$rofi_theme" \
+    -kb-custom-1 "Ctrl+l" -kb-custom-2 "Ctrl+o" -dmenu -i -theme "$rofi_theme" \
     -no-custom -auto-select  2>/dev/null ) 
     code="$?"
 }
@@ -76,7 +77,7 @@ get_choice; [[ "$code" == "10" ]] && { mouse_button='1';  get_choice; }
 hide_systray_hints
 
 [[ "$choice" == "$exit_key" ]] && unset choice
-[[ -z "$choice" ]] && { hide_systray; exit 0; }
+[[ -z "$choice" ]] && { [[ "$hide" == "true" ]] && hide_systray; exit 0; }
 
 mouse_to_icon "$choice" && 
 
