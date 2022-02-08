@@ -1,0 +1,1 @@
+require("systray-hints.core")
