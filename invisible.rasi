@@ -1,40 +1,5 @@
 /**
- * Invisible theme to use ROFI as a key grabber   
- * Based on a theme by Dave Davenport
+ * 
+ * Deprecated.
+ *
  */
-* {
-    background-color:      rgba ( 255, 255, 255, 0 % );
-    border-color:          rgba ( 255, 255, 255, 0 % );
-    text-color:           rgba ( 255, 255, 255, 0 % );
-}
-
-#window {
-    anchor:     north;
-    location:   north;
-    width:      0;
-    padding:    4px;
-    children:   [ horibox ];
-}
-
-#horibox {
-    orientation: horizontal;
-    children:   [ prompt, entry, listview ];
-}
-
-#listview {
-    layout:     horizontal;
-    spacing:    5px;
-    lines:      100;
-}
-
-#entry {
-    expand:     false;
-    width:      10em;
-}
-
-#element {
-    padding: 0px 2px;
-}
-#element selected {
-    background-color: rgba ( 255, 255, 255, 0 % );
-}
