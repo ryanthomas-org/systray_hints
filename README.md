@@ -13,7 +13,7 @@ If ten or more icons are displayed, the function will interpret the "1" key as t
 # Install
 
     cd ~/.config/awesome
-    git clone https://github.com/sawyer07/systray-hints
+    git clone https://github.com/ryanthomas-org/systray-hints
 
 Add `require("systray-hints")` to rc.lua, and configure as follows. 
 
