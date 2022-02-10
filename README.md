@@ -1,6 +1,4 @@
-Control the AwesomeWM systray from the keyboard using vimium-like number hints. Developed and tested on awesome v4.3. 
-
-We are surprised at the time of this writing that the system tray remains such an obvious bottleneck in the nevertheless ubiquitous fight against mouse-dependency among neckbeards the world over. 
+We are surprised at the time of this writing that the system tray remains such an obvious bottleneck in the nevertheless ubiquitous fight against mouse-dependency among neckbeards the world over. We present accordingly, systray_hints.
 
 # Overview
 
@@ -15,7 +13,7 @@ If ten or more icons are displayed, the function will interpret the "1" key as t
     cd ~/.config/awesome
     git clone https://github.com/ryanthomas-org/systray-hints
 
-Add `require("systray-hints")` to rc.lua, and configure as follows. 
+Add `systray_hints = require("systray_hints")` to rc.lua. Note this may work better at the end of the file.
 
 # Configuration
 
