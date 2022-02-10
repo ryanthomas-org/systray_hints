@@ -1,1 +1,1 @@
-require("systray-hints.core")
+return require("systray_hints.core") 
