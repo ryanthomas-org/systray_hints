@@ -20,7 +20,6 @@ local systray_hints = {
     font              = b.systray_hints_font or b.taglist_font or b.font,
     bgcolor           = b.systray_hints_bg or b.taglist_bg_occupied or "#55465a",
     highlight         = b.systray_hints_bg_highlight or "#aa53aa",
-
     highlight_alt     = b.systray_hints_bg_highlight_alt or "#426f5a",
     color             = b.systray_hints_fg or b.taglist_fg_occupied or "#fdf6e3",
     bordercolor       = "#fdf6e333",
@@ -82,21 +81,15 @@ local function get_key_input(total)
     local grabber
     local mouse_button
     local function conc(n) return tonumber( 1 .. n ) end
-    
     mouse_button = systray_hints.default_button
-    
     grabber = awful.keygrabber {
-
         mask_modkeys = true,
         autostart = true,
         keypressed_callback  = function(self, mod, key, cmd)
-
             if key == '1' and total > 9 then 
-                
                 if systray_hints.popup then
                     highlight_multidigits(total)
                 end
-                
                 grabber.keypressed_callback  = function(self, mod, key, cmd)
                         if key == "Return" then
                             execute(1, mouse_button)
@@ -121,11 +114,8 @@ local function get_key_input(total)
                 if was_hidden then systray_hints.systray.visible = false end
                 if systray_hints.popup then systray_hints.popup.visible = false end
             end
-
         end,
-
     }
-
 end
 
 local function show_hints(x, y, w, total, s)
