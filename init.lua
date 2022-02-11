@@ -1,45 +1,42 @@
 -- S Y S T R A Y   H I N T S 
 -- rts/oarion7 - ryanthomas.org 
--- Module to control the awesomewm systray from the keyboard using
--- vimium-like number hints. Developed and tested on awesome v4.3. 
-
--- TO DO: move widget to table (remove globals)
--- cleanup 
+-- Control the awesomewm systray from the keyboard using vimium-like
+-- number hints. Developed and tested on awesome v4.3. 
 
 local awful = require("awful")
 local gears = require("gears")
 local b     = require("beautiful")
 local wibox = require("wibox")
-
 local s
 
-local font          = b.systray_hints_font or b.taglist_font or b.font
-local bgcolor       = b.systray_hints_bg or b.taglist_bg_occupied or "#55465a"
-local highlight     = b.systray_hints_bg_highlight or "#aa53aa"
-local highlight_alt = b.systray_hints_bg_highlight_alt or "#426f5a"
-local fgcolor       = b.systray_hints_fg or b.taglist_fg_occupied or "#fdf6e3" 
-local bordercolor   = "#fdf6e333"
+awful.screen.connect_for_each_screen(function(screen) 
+    if screen.systray then s = screen end 
+end) 
 
-awful.screen.connect_for_each_screen(function(screen) if screen.systray then s = screen end end) 
 if s == nil then return nil end
 
-local systray_hints = {
-    arrows = { "Left", "Down", "Up", "Right" },
-    --arrows = { "h", "j", "k", "l" },
-    default_button = 3, 
-    --default_button = 1, 
-    hints = hints,
-    systray = s.systray,
-    wibox = s.mywibox, --where the system tray is located
-    run = run,
+local systray_hints = { 
+
+    font              = b.systray_hints_font or b.taglist_font or b.font,
+    bgcolor           = b.systray_hints_bg or b.taglist_bg_occupied or "#55465a",
+    highlight         = b.systray_hints_bg_highlight or "#aa53aa",
+
+    highlight_alt     = b.systray_hints_bg_highlight_alt or "#426f5a",
+    color             = b.systray_hints_fg or b.taglist_fg_occupied or "#fdf6e3",
+    bordercolor       = "#fdf6e333",
+    spacing           = 1,
+    mouse_buttons     = { "Left", "Up", "Right" }, 
+    default_button    = 3, 
+    popup             = popup,
+    systray           = s.systray,
+    wibox             = s.mywibox, --wibox in which to locate the system tray 
+    run               = run,
 }
 
 local total
 local was_hidden
-local icon_count
 local icon_width
-local half_icon 
-local first_icon_x
+local icons_x
 local icons_y
 
 local function delay(time, cmd)
@@ -47,48 +44,47 @@ local function delay(time, cmd)
         callback = function () cmd () end, } )
 end
 
-
 local function execute(choice, mouse_button)
 
-    local target
+    local saved
     local factor
-    local saved_coords
+    local target
 
-    saved_coords = mouse.coords({x = x, y = y}) 
+    saved = mouse.coords({x = x, y = y}) 
     if choice == 1 then factor = 0 else factor = choice - 1 end
-    target = first_icon_x + ( icon_width * factor )
+    target = icons_x + ( icon_width * factor )
     mouse.coords { x = target , y = icons_y }
 
     if mouse_button ~= 2 then 
         root.fake_input("button_press" , tostring(mouse_button))
         root.fake_input("button_release", tostring(mouse_button))
-        delay(0.05, function () mouse.coords({x = saved_coords.x, y = saved_coords.y}, true) end) 
+        delay(0.05, function () mouse.coords({x = saved.x, y = saved.y}, true) end) 
     end
 
-    if systray_hints.hints then systray_hints.hints.visible = false end
+    if systray_hints.popup then systray_hints.popup.visible = false end
 
 end
 
-local function highlight_options(total)
+local function highlight_multidigits(total)
     local color    
     for i = 9, total do
-        color = highlight_alt
+        color = systray_hints.highlight_alt
         if i == 9 then 
             i = 1 
-            color = highlight
+            color = systray_hints.highlight
         end
-        systray_hints.hints.widget:get_children()[1]:get_children()[i].widget:set_bg(color)
+        systray_hints.popup.widget:get_children()[1]:get_children()[i].widget:set_bg(color)
     end
 end
-
 
 local function get_key_input(total)
 
     local grabber
     local mouse_button
-    local mouse_button = systray_hints.default_button
     local function conc(n) return tonumber( 1 .. n ) end
-
+    
+    mouse_button = systray_hints.default_button
+    
     grabber = awful.keygrabber {
 
         mask_modkeys = true,
@@ -97,9 +93,10 @@ local function get_key_input(total)
 
             if key == '1' and total > 9 then 
                 
-                if systray_hints.hints then
-                    highlight_options(total)
+                if systray_hints.popup then
+                    highlight_multidigits(total)
                 end
+                
                 grabber.keypressed_callback  = function(self, mod, key, cmd)
                         if key == "Return" then
                             execute(1, mouse_button)
@@ -109,20 +106,20 @@ local function get_key_input(total)
                             grabber:stop()
                         else
                             grabber:stop()
-                            if was_hidden then s.systray.visible = false end
-                            if systray_hints.hints then systray_hints.hints.visible = false end
+                            if was_hidden then systray_hints.systray.visible = false end
+                            if systray_hints.popup then systray_hints.popup.visible = false end
                         end
                 end
-            elseif key == systray_hints.arrows[1] then mouse_button = 1
-            elseif key == systray_hints.arrows[4] then mouse_button = 3
-            elseif key == systray_hints.arrows[2] or key == systray_hints.arrows[3] then mouse_button = 2
+            elseif key == systray_hints.mouse_buttons[1] then mouse_button = 1
+            elseif key == systray_hints.mouse_buttons[2] then mouse_button = 2
+            elseif key == systray_hints.mouse_buttons[3] then mouse_button = 3
             elseif not key:match("%D") and tonumber(key) <= total then 
                 execute(tonumber(key), mouse_button)
                 grabber:stop()
             else
                 grabber:stop()
-                if was_hidden then s.systray.visible = false end
-                if systray_hints.hints then systray_hints.hints.visible = false end
+                if was_hidden then systray_hints.systray.visible = false end
+                if systray_hints.popup then systray_hints.popup.visible = false end
             end
 
         end,
@@ -131,79 +128,67 @@ local function get_key_input(total)
 
 end
 
+local function show_hints(x, y, w, total, s)
 
+    local hints = {}
+    local hint_width
 
-local function show_hints(sys_hints_geo_x, sys_hints_geo_y, w, sys_hints_icon_count, s)
+    hint_width = w - ( systray_hints.spacing * 2 ) 
 
-    local sys_hints_icon_width = w - 2 --subtract for margins
+    --Decide whether hints should display above or below systray icons.
+    if y >= 100 then y = y - hint_width else y = y + hint_width end
 
-    if sys_hints_geo_y >= 100 then 
-        sys_hints_geo_y = sys_hints_geo_y - sys_hints_icon_width
-    else sys_hints_geo_y = sys_hints_geo_y + sys_hints_icon_width
-    --Decide if hints should display above or below systray icons.
-    end
-
-    --hide if already displayed
-    if systray_hints.hints then systray_hints.hints.visible = false end
-
-    local num_rows = sys_hints_icon_count
-    local sys_hints_list = {}
-    local systray_widget_list = {}
+    --Hide if already displayed
+    if systray_hints.popup then systray_hints.popup.visible = false end
 
     local widget_shape = function(cr, width, height)
         gears.shape.rounded_rect(cr, width, height, 5)
     end
 
-    local var = {}
-    for i = 1, num_rows do table.insert(sys_hints_list, tostring(i)) end 
-    for k, v in pairs(sys_hints_list) do
+    for i = 1, total do 
 
-        var["text_" .. v] = wibox.widget.textbox(tostring(v))
-        local text_alias = var["text_" .. v]
-        text_alias.font = font -- "Sans 14"
-        text_alias.markup = '<span color="' .. fgcolor ..
-        '">' .. v .. '</span>'
+        local text 
+        local placement = {}
+        local background = {}
+        local margins = {}
 
-        local item_place = {}
-        table.insert(item_place, text_alias)
+        text        = wibox.widget.textbox(tostring(i))
+        text.font   = systray_hints.font 
+        text.markup = '<span color="' .. systray_hints.color .. '">' .. 
+                      i .. '</span>'
 
-        item_place.widget = wibox.container.place
+        table.insert(placement, text)
+        
+        placement.widget = wibox.container.place
+        table.insert(background, placement)
 
-        local item_background = {}
-        table.insert(item_background, item_place)
+        background.widget             = wibox.container.background
+        background.bg                 = systray_hints.bgcolor 
+        background.forced_width       = hint_width
+        background.shape              = widget_shape
+        background.shape_border_width = 2
+        background.shape_border_color = systray_hints.bordercolor
 
-        item_background.widget = wibox.container.background
-        item_background.bg = bgcolor -- "#ff00ff"
-        item_background.forced_width = sys_hints_icon_width
-        item_background.shape  = widget_shape
-        item_background.shape_border_width = 2
-        item_background.shape_border_color = bordercolor
-        tostring(v)
+        table.insert(margins, background)
 
-        local item_margin = {}
-        table.insert(item_margin, item_background)
-
-        item_margin.widget = wibox.container.margin
-        item_margin.right  = 1
-        item_margin.left  = 1
-
-        local complete_widget = item_margin
-        table.insert(systray_widget_list, complete_widget)
+        margins.widget = wibox.container.margin
+        margins.right  = systray_hints.spacing
+        margins.left  = systray_hints.spacing
+        table.insert(hints, margins)
     end 
 
-    systray_widget_list.layout = wibox.layout.fixed.horizontal
-    systray_hints.hints = awful.popup {
+    hints.layout = wibox.layout.fixed.horizontal
+    systray_hints.popup = awful.popup {
         widget = {
-        screen = s,
-        systray_widget_list,
-
-        layout = wibox.layout.fixed.horizontal,
+            screen = s,
+            hints,
+            layout = wibox.layout.fixed.horizontal,
         },
-        x            = sys_hints_geo_x,
-        y            = sys_hints_geo_y,
-        visible      = true,
-        ontop        = true,
-        bg           = "#00000000",
+        x = x,
+        y = y,
+        visible = true,
+        ontop = true,
+        bg = "#00000000",
    }
 
 end
@@ -214,14 +199,13 @@ local function find_widget_in_wibox(wb, wdg)
       local g = gears.matrix.transform_rectangle
       local x, y, w, h = g(hi:get_matrix_to_device(), 0, 0, hi:get_size())
 
-      icon_count = math.floor( ( w - ( w % h) ) / h + 1 )
-      icon_width = math.floor(w / icon_count )
-      half_icon = math.floor( icon_width / 2)
-      first_icon_x = math.floor( x + half_icon)
-      icons_y = math.floor(y + half_icon)
+      total = math.floor( ( w - ( w % h) ) / h + 1 )
+      icon_width = math.floor(w / total )
+      icons_x = math.floor( x + icon_width / 2)
+      icons_y = math.floor(y + icon_width / 2)
       
-      show_hints( math.floor(x), math.floor(y), icon_width, icon_count, s )
-      get_key_input(icon_count)
+      show_hints( math.floor(x), math.floor(y), icon_width, total, s )
+      get_key_input(total)
 
    end
 
@@ -231,9 +215,7 @@ local function find_widget_in_wibox(wb, wdg)
             return 
       end
       for _, child in ipairs(hi:get_children()) do
-         -- return traverse(child)
             traverse(child)
-         -- allow for additional round of recursion across container widgets.
       end
    end
    return traverse(wb._drawable._widget_hierarchy)
@@ -241,9 +223,9 @@ end
 
 systray_hints.run = function ()
 
-    if not s.systray.visible then 
+    if not systray_hints.systray.visible then 
         was_hidden = true
-        s.systray.visible = true 
+        systray_hints.systray.visible = true 
         delay(0.05, function () find_widget_in_wibox(systray_hints.wibox, systray_hints.systray) end) 
     else
         find_widget_in_wibox(systray_hints.wibox, systray_hints.systray)

@@ -1,12 +1,12 @@
-We are surprised at the time of this writing that the system tray remains such an obvious bottleneck in the nevertheless ubiquitous fight against mouse-dependency among neckbeards the world over. We present accordingly, systray_hints.
+We are surprised at the time of this writing that the system tray remains such an obvious bottleneck in the nevertheless ubiquitous fight against mouse-dependency among neckbeards the world over. We present accordingly: systray_hints.
 
 # Overview
 
-When `systray_hints.run()` is executed, a popup widget displays numbers next to each icon in the system tray while keygrabber listens for input. The number entered on the keyboard sends a right click to the corresponding icon and the original position of the mouse pointer is restored. For most programs this opens a context menu the user may then navigate using arrow keys and pressing Return. 
+When `systray_hints.run()` is executed, a popup widget displays a number next to each icon in the system tray while keygrabber listens for input. The number entered on the keyboard sends a right click to the corresponding icon and the original position of the mouse pointer is restored. For most programs this opens a context menu the user may then navigate using arrows and the Return key. To cancel, submit any invalid entry; in practice this includes the Escape key as well as whatever keybinding was configured to launch the function.
 
-The default option of a right click may be overriden on the fly by pressing the Left or Right arrow key before making a selection for a left or right click, respectively. Alternatively, pressing either the Up or Down key will bypass all clicking and the pointer is simply moved to the location of the selected icon to display its on-hover tooltip, if any.
+The configured mouse button (right-click by default) can be overridden before entering a selection by pressing the Left or Right arrow key for a left or right click, respectively. Alternatively, pressing the Up arrow key will substitute hovering for clicking to display a given icon's tooltip, if any. 
 
-If ten or more icons are displayed, the function will interpret the "1" key as the first digit of the selection and wait for the second digit, or wait for the Return key. Up to 19 icons are supported.
+If ten or more icons are displayed, the keygrabber will interpret the "1" key as the first digit of the selection and wait for the second digit, or for the Return key to select the first icon. Up to 19 icons are supported.
 
 # Install
 
@@ -16,6 +16,13 @@ If ten or more icons are displayed, the function will interpret the "1" key as t
 Add `systray_hints = require("systray_hints")` to rc.lua. Note this may work better at the end of the file.
 
 # Configuration
+
+Configure by overriding systray_hints table values after the require statement. For example, set the font, left-click by default, and redefine the keybindings for left-click [1], hover [2], and right-click [3].
+
+    systray_hints                = require("systray_hints")
+    systray_hints.font           = "Iosevka Bold 16"
+    systray_hints.default_button = 1
+    systray_hints.mouse_buttons  = { "h", "j", "l" }
 
 If the system tray is normally hidden in your environment and toggled as needed with a keybinding, you can replace that keybinding with something like this:
 
@@ -34,7 +41,7 @@ If the system tray is normally hidden in your environment and toggled as needed 
 
     end, {description="toggle systray with hints", group="awesome"}),
 
-The `systray_hints.run()` function will automatically unhide the system tray as needed and will return it to its original visiblity state whenever a selection is not made.
+The `systray_hints.run()` function will automatically unhide the system tray as needed and will return it to its original visiblity state whenever a selection is not made, such as when the key combination is pressed again.
 
 If your system tray is always displayed, simply create a keybinding like the following:
 
@@ -53,6 +60,4 @@ If your system tray is always displayed, simply create a keybinding like the fol
 
 The ability to obtain the geometry of the system tray is not referenced in the awesome API for a reason; in theory it may occasionally return incorrect data, requiring an additional execution of the keybinding.
 
-This project was previously assembled as a quick hack in the form of a shell script requiring iocane, rofi, and xdotool. It has been rewritten as a native lua module for the latest stable release with no external dependencies. Final testing and clean-up in progress.
-
-While deprecated functions were avoided, we have not yet tested it in the development version.
+This project was previously assembled as a quick hack in the form of a shell script requiring iocane, rofi, and xdotool. It has been rewritten as a native lua module for the latest stable release with no external dependencies. While deprecated functions were avoided, we have not yet tested it in the development version.
