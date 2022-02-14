@@ -11,7 +11,7 @@ If ten or more icons are displayed, the keygrabber will interpret the "1" key as
 # Install
 
     cd ~/.config/awesome
-    git clone https://github.com/ryanthomas-org/systray-hints
+    git clone https://github.com/ryanthomas-org/systray_hints
 
 Add `systray_hints = require("systray_hints")` to rc.lua. Note this may work better at the end of the file.
 
