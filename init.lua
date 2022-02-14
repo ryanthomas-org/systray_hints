@@ -118,12 +118,21 @@ local function get_key_input(total)
     }
 end
 
-local function show_hints(x, y, w, total, s)
+local function show_popup(x, y, w, h)
 
     local hints = {}
     local hint_width
 
-    hint_width = w - ( systray_hints.spacing * 2 ) 
+    local x = math.floor(x)
+    local y = math.floor(y)
+
+    total = math.floor( ( w - ( w % h ) ) / h + 1 )
+    icon_width = math.floor(w / total )
+
+    icons_x = math.floor( x + icon_width / 2)
+    icons_y = math.floor( y + icon_width / 2)
+
+    hint_width = icon_width - ( systray_hints.spacing * 2 ) 
 
     --Decide whether hints should display above or below systray icons.
     if y >= 100 then y = y - hint_width else y = y + hint_width end
@@ -183,42 +192,41 @@ local function show_hints(x, y, w, total, s)
 
 end
 
-local function find_widget_in_wibox(wb, wdg)
-    
-   local function get_geometry(hi)
+local function get_geometry(hi)
       local g = gears.matrix.transform_rectangle
-      local x, y, w, h = g(hi:get_matrix_to_device(), 0, 0, hi:get_size())
+      return g(hi:get_matrix_to_device(), 0, 0, hi:get_size())
+end
 
-      total = math.floor( ( w - ( w % h) ) / h + 1 )
-      icon_width = math.floor(w / total )
-      icons_x = math.floor( x + icon_width / 2)
-      icons_y = math.floor(y + icon_width / 2)
-      
-      show_hints( math.floor(x), math.floor(y), icon_width, total, s )
-      get_key_input(total)
+local function find_widget(wb, wdg)    
 
-   end
-
+   local hierarchy
    local function traverse(hi)
       if hi:get_widget() == wdg then
-            get_geometry(hi)
-            return 
+            hierarchy = hi
       end
       for _, child in ipairs(hi:get_children()) do
             traverse(child)
       end
    end
-   return traverse(wb._drawable._widget_hierarchy)
+   traverse(wb._drawable._widget_hierarchy)
+   return hierarchy
 end
 
 systray_hints.run = function ()
 
+    local function show_hints()
+        show_popup( get_geometry(find_widget(systray_hints.wibox, systray_hints.systray)) )
+        get_key_input(total)
+    end
+
     if not systray_hints.systray.visible then 
         was_hidden = true
         systray_hints.systray.visible = true 
-        delay(0.05, function () find_widget_in_wibox(systray_hints.wibox, systray_hints.systray) end) 
+        delay(0.05, function () 
+            show_hints()
+        end) 
     else
-        find_widget_in_wibox(systray_hints.wibox, systray_hints.systray)
+        show_hints()
     end
 
 end
