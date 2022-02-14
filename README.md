@@ -24,6 +24,8 @@ Configure by overriding systray_hints table values after the require statement. 
     systray_hints.default_button = 1
     systray_hints.mouse_buttons  = { "h", "j", "l" }
 
+By default, systray_hints looks for `s.systray` in `s.mywibox`. If your systray widget or wibox has a different name, set `systray_hints.systray` or `systray_hints.wibox` accordingly.
+
 If the system tray is normally hidden in your environment and toggled as needed with a keybinding, you can replace that keybinding with something like this:
 
     awful.key({ modkey }, "s", function ()
@@ -55,6 +57,17 @@ If your system tray is always displayed, simply create a keybinding like the fol
         systray_hints.run() 
 
     end, {description="toggle systray hints", group="awesome"}),
+
+# Theme
+
+Set custom colors in `theme.lua` as desired:
+
+    theme.systray_hints_font             = "Iosevka Bold 16"
+    theme.systray_hints_fg               = "#fdf6e3" 
+    theme.systray_hints_bg               = "#55465a" 
+    theme.systray_hints_bg_highlight     = "#aa53aa" 
+    theme.systray_hints_bg_highlight_alt = "#426f5a"
+    theme.systray_hints_border           = "#fdf6e333"
 
 # Issues
 
