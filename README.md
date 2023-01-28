@@ -74,3 +74,5 @@ Set custom colors in `theme.lua` as desired:
 The ability to obtain the geometry of the system tray is not referenced in the awesome API for a reason; in theory it may occasionally return incorrect data, requiring an additional execution of the keybinding.
 
 This project was previously assembled as a quick hack in the form of a shell script requiring iocane, rofi, and xdotool. It has been rewritten as a native lua module for the latest stable release with no external dependencies. While deprecated functions were avoided, we have not yet tested it in the development version.
+
+The geometry of individual icons is calculated based on the assumption that they exist in a single row. This limitation is removed in the development release channel and could be compensated for by checking for `systray_max_rows` or forcing `base_size`. Modifications to the hints widget would also be necessary.
