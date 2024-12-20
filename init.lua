@@ -9,11 +9,11 @@ local b     = require("beautiful")
 local wibox = require("wibox")
 local s
 
-awful.screen.connect_for_each_screen(function(screen) 
-    if screen.systray then s = screen end 
-end) 
+s = screen.primary 
+-- expected screen for systray to appear
+-- tweak if using Kuroneer's awm_config/move_systray.lua or systray:only_visible_on_screen, etc.
 
-if s == nil then return nil end
+if s == nil or s.systray == nil then return nil end
 
 local systray_hints = { 
 
@@ -29,6 +29,7 @@ local systray_hints = {
     popup             = popup,
     systray           = s.systray,
     wibox             = s.mywibox, --wibox in which to locate the system tray 
+    screen_offset     = s.geometry,
     run               = run,
 }
 
@@ -99,7 +100,9 @@ local function get_key_input(total)
                             grabber:stop()
                         else
                             grabber:stop()
-                            if was_hidden then systray_hints.systray.visible = false end
+                            if was_hidden then systray_hints.systray.visible = false 
+                            gears.timer.delayed_call(function() title_constraint_master(s) end)
+                            end
                             if systray_hints.popup then systray_hints.popup.visible = false end
                         end
                 end
@@ -111,7 +114,8 @@ local function get_key_input(total)
                 grabber:stop()
             else
                 grabber:stop()
-                if was_hidden then systray_hints.systray.visible = false end
+                if was_hidden then systray_hints.systray.visible = false gears.timer.delayed_call(function() 
+                     title_constraint_master(s) end) end
                 if systray_hints.popup then systray_hints.popup.visible = false end
             end
         end,
@@ -123,8 +127,8 @@ local function show_popup(x, y, w, h)
     local hints = {}
     local hint_width
 
-    local x = math.floor(x)
-    local y = math.floor(y)
+    local x = math.floor(x + systray_hints.screen_offset.x)
+    local y = math.floor(y + systray_hints.screen_offset.y)
 
     total = math.floor( ( w - ( w % h ) ) / h + 1 )
     icon_width = math.floor(w / total )
